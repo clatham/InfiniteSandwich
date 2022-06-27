@@ -1,0 +1,12 @@
+{
+    "name": "disney",
+    "version-string": "0.0.1",
+    "dependencies": [
+        "curl",
+        "ffmpeg",
+        "glad",
+        "glfw3",
+        "nlohmann-json",
+        "stb"
+    ]
+}

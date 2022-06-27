@@ -1,0 +1,96 @@
+#include <iostream>
+#include <map>
+#include "Font.h"
+#include "ft2build.h"
+#include FT_FREETYPE_H
+#include "glad/glad.h"
+#include "Texture.h"
+
+
+struct Extent
+{
+    int x;
+    int y;
+    int width;
+    int height;
+    int advance;
+};
+
+struct Font::PrivateImpl
+{
+    FT_Library library;
+    FT_Face face;
+    
+    int bitmapWidth;
+    int bitmapHeight;
+    
+    std::map<unsigned char,Extent> extents;
+    
+    Texture texture;
+};
+
+
+Font::Font() :
+    m_impl(new PrivateImpl)
+{
+    if(m_impl)
+    {
+        int result = ::FT_Init_FreeType(&m_impl->library);
+        
+        if(result)
+        {
+            std::cerr << "Font::Font:  error initializing font library:  " << ::FT_Error_String(result) << std::endl;
+        }
+    }
+}
+
+
+Font::~Font()
+{
+    if(m_impl)
+    {
+        destroy();
+        
+        ::FT_Done_FreeType(m_impl->library);
+        
+        delete m_impl;
+    }
+}
+
+
+bool Font::load(const std::string& filename,unsigned int lineHeight)
+{
+    if(!m_impl)
+        return false;
+    
+    
+    int result = ::FT_New_Face(m_impl->library,filename.c_str(),0,&m_impl->face);
+    
+    if(result)
+    {
+        std::cerr << "Font::load:  error loading font:  " << ::FT_Error_String(result) << std::endl;
+        return false;
+    }
+    
+    ::FT_Set_Pixel_Sizes(m_impl->face,0,lineHeight);
+    
+    return true;
+}
+
+
+void Font::destroy()
+{
+    if(!m_impl)
+        return;
+    
+    ::FT_Done_Face(m_impl->face);
+}
+
+
+void Font::drawText(const std::string& text,
+                    float screenX,float screenY,float screenWidth,float screenHeight)
+{
+    if(!m_impl)
+        return;
+    
+}
