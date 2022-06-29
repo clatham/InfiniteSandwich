@@ -41,11 +41,10 @@ bool DisneyWindow::onCreate()
     
     const std::string url = "https://cd-static.bamgrid.com/dp-117731241344/home.json";
     
-    WebSupplicant supplicant;
-    supplicant.request(url);
+    m_supplicant.request(url);
     
 
-    nlohmann::json jsonHome = nlohmann::json::parse(supplicant.data());
+    nlohmann::json jsonHome = nlohmann::json::parse(m_supplicant.data());
     parseStandardCollection(jsonHome["data"]["StandardCollection"],m_tileSets);
     
     
@@ -213,11 +212,10 @@ void DisneyWindow::parseStandardCollection(nlohmann::json& standardCollection,st
             std::string refId = containers[index]["set"]["refId"].get<std::string>();
             std::string url = std::string("https://cd-static.bamgrid.com/dp-117731241344/sets/") + refId + ".json";
             
-            WebSupplicant supplicant;
-            supplicant.request(url);
+            m_supplicant.request(url);
             
             
-            nlohmann::json jsonRefSet = nlohmann::json::parse(supplicant.data());
+            nlohmann::json jsonRefSet = nlohmann::json::parse(m_supplicant.data());
             
             if(!jsonRefSet.contains("data"))
                 return;
@@ -265,37 +263,9 @@ void DisneyWindow::parseSet(nlohmann::json& set,std::vector<TileSet>& tileSets)
 
 void DisneyWindow::loadTextures(DisneyWindow *object)
 {
+    WebSupplicant supplicant;
     int rowCount = (int) object->m_tileSets.size();
     
-    for(int row = 0;row < 4;++row)
-    {
-        int columnCount = (int) object->m_tileSets[row].tiles.size();
-        
-        for(int column = 0;column < 6;++column)
-        {
-            object->m_mutex.lock();
-            auto imageIndex = object->m_images.find(object->m_tileSets[row].tiles[column].url);
-            object->m_mutex.unlock();
-            
-            if(imageIndex == object->m_images.end())
-            {
-                WebSupplicant supplicant;
-                if(supplicant.request(object->m_tileSets[row].tiles[column].url))
-                {
-                    std::string data = supplicant.data();
-                
-                    std::shared_ptr<Image> image = std::make_shared<Image>();
-                    if(image->load((unsigned char *) data.data(),(int) data.size()))
-                    {
-                        object->m_mutex.lock();
-                        object->m_images[object->m_tileSets[row].tiles[column].url] = std::move(image);
-                        object->m_mutex.unlock();
-                    }
-                }
-            }
-        }
-    }
-
     for(int row = 0;row < rowCount;++row)
     {
         int columnCount = (int) object->m_tileSets[row].tiles.size();
@@ -308,7 +278,6 @@ void DisneyWindow::loadTextures(DisneyWindow *object)
             
             if(imageIndex == object->m_images.end())
             {
-                WebSupplicant supplicant;
                 if(supplicant.request(object->m_tileSets[row].tiles[column].url))
                 {
                     std::string data = supplicant.data();

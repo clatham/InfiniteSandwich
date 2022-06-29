@@ -9,6 +9,7 @@
 #include "nlohmann/json.hpp"
 #include "Rectangle.h"
 #include "Texture.h"
+#include "WebSupplicant.h"
 #include "Window.h"
 
 
@@ -57,6 +58,7 @@ class DisneyWindow : public Window
         
         Font m_font;
         
+        WebSupplicant m_supplicant;
         std::vector<TileSet> m_tileSets;
         
         std::mutex m_mutex;
