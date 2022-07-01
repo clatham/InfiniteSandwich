@@ -50,14 +50,21 @@ bool DisneyWindow::onCreate()
     
     m_worker = std::thread(loadTextures,this);
     
+    m_startTime = time();
+    m_currentTime = m_startTime;
+    m_selectionChangeTime = m_startTime;
+    
     m_selection.create();
     
+    m_decoder.setLoggingLevel(8);
     return true;
 }
 
 
 void DisneyWindow::onDestroy()
 {
+    m_decoder.close();
+    
     m_selection.destroy();
     
     m_worker.join();
@@ -72,6 +79,12 @@ void DisneyWindow::onDestroy()
 
 void DisneyWindow::onKeyPress(int key)
 {
+    int prevSelectionRow = m_selectionRow;
+    int prevSelectionColumn = m_selectionColumn;
+    int prevRowOffset = m_rowOffset;
+    int prevColumnOffset = m_tileSets[m_rowOffset + m_selectionRow].columnOffset;
+    
+    
     switch(key)
     {
         case GLFW_KEY_RIGHT:
@@ -102,6 +115,15 @@ void DisneyWindow::onKeyPress(int key)
             m_selectionRow = std::max(0,m_selectionRow - 1);
             break;
     }
+    
+    
+    if(prevSelectionRow != m_selectionRow  ||
+       prevSelectionColumn != m_selectionColumn  ||
+       prevRowOffset != m_rowOffset  ||
+       prevColumnOffset != m_tileSets[m_rowOffset + m_selectionRow].columnOffset)
+    {
+        m_selectionChangeTime = m_currentTime;
+    }
 }
 
 
@@ -117,31 +139,50 @@ void DisneyWindow::onRender()
     ::glClear(GL_COLOR_BUFFER_BIT);
     
     
-    static const double startTime = time();
-    double currentTime = time();
-
-    static int frameCount = 0;
-    static double lastFpsTime = startTime;
-    double deltaTime = currentTime - lastFpsTime;
-    
-    if(deltaTime >= 1.0)
+    if(m_selectionChangeTime == m_currentTime  &&
+       !m_tileSets[m_selectionRow + m_rowOffset].tiles[m_selectionColumn + m_tileSets[m_selectionRow + m_rowOffset].columnOffset].videoUrl.empty())
     {
-        double fps = frameCount / deltaTime;
+        m_decoder.close();
+        m_decoder.open(m_tileSets[m_selectionRow + m_rowOffset].tiles[m_selectionColumn + m_tileSets[m_selectionRow + m_rowOffset].columnOffset].videoUrl);
         
-        frameCount = 0;
-        lastFpsTime = currentTime;
-        
-        setTitle(std::string("Disney+ Project - [") + std::to_string(fps) + "]");
+        m_videoUpdateTime = m_currentTime;
     }
     
     
-    if(currentTime - startTime < 2.0)
+    m_currentTime = time();
+    
+    
+    if(m_currentTime - m_startTime < 2.0)
     {
         m_disneyPlusLogo.draw(0.0f,0.0f,1.0f,1.0f,
                               0.0f,0.0f,1.0f,1.0f);
     }
     else
     {
+        if(m_currentTime - m_selectionChangeTime >= 3.0  &&
+           m_currentTime >= m_videoUpdateTime  &&
+           !m_tileSets[m_selectionRow + m_rowOffset].tiles[m_selectionColumn + m_tileSets[m_selectionRow + m_rowOffset].columnOffset].videoUrl.empty())
+        {
+            Image image;
+            int result = m_decoder.decode(image);
+            
+            if(result < 0)
+            {
+                m_decoder.close();
+                m_decoder.open(m_tileSets[m_selectionRow + m_rowOffset].tiles[m_selectionColumn + m_tileSets[m_selectionRow + m_rowOffset].columnOffset].videoUrl);
+                
+                m_videoUpdateTime = m_currentTime;
+            }
+            else if(result > 0)
+            {
+                m_videoFrame.destroy();
+                m_videoFrame.create(image);
+                
+                m_videoUpdateTime = m_currentTime + 1.0 / 24.0;
+            }
+        }
+
+
         float rowCount = 4;
         float columnCount = 5.5;
         
@@ -166,7 +207,14 @@ void DisneyWindow::onRender()
                     m_selection.draw(-1.0f + tileWidth * column + tileWidth * 0.6f,1.0f - tileHeight * row - tileHeight * 0.5f,tileWidth * scale * 1.005f,tileWidth * scale * 1.005f);
                 }
                 
-                if(m_tileSets[row + m_rowOffset].tiles[column + m_tileSets[row + m_rowOffset].columnOffset].texture)
+                if(row == m_selectionRow  &&  column == m_selectionColumn  &&
+                   !m_tileSets[m_selectionRow + m_rowOffset].tiles[m_selectionColumn + m_tileSets[m_selectionRow + m_rowOffset].columnOffset].videoUrl.empty()  &&
+                   m_currentTime - m_selectionChangeTime >= 3.0)
+                {
+                    m_videoFrame.draw(-1.0f + tileWidth * column + tileWidth * 0.6f,1.0f - tileHeight * row - tileHeight * 0.5f,tileWidth * scale,tileWidth * scale,
+                                      0.0f,0.0f,1.0f,1.0f);
+                }
+                else if(m_tileSets[row + m_rowOffset].tiles[column + m_tileSets[row + m_rowOffset].columnOffset].texture)
                 {
                     m_tileSets[row + m_rowOffset].tiles[column + m_tileSets[row + m_rowOffset].columnOffset].texture->draw(-1.0f + tileWidth * column + tileWidth * 0.6f,1.0f - tileHeight * row - tileHeight * 0.5f,tileWidth * scale,tileWidth * scale,
                                                                 0.0f,0.0f,1.0f,1.0f);
@@ -192,12 +240,8 @@ void DisneyWindow::onRender()
         m_mutex.unlock();
     }
     
-    
 //    m_font.drawText(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
 //                    -1.0f,0.0f,2.0f,0.25f);
-    
-    
-    ++frameCount;
 }
 
 

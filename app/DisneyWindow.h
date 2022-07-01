@@ -6,9 +6,11 @@
 #include <unordered_map>
 #include <vector>
 #include "Font.h"
+#include "Image.h"
 #include "nlohmann/json.hpp"
 #include "Rectangle.h"
 #include "Texture.h"
+#include "VideoDecoder.h"
 #include "WebSupplicant.h"
 #include "Window.h"
 
@@ -66,8 +68,16 @@ class DisneyWindow : public Window
 
         std::thread m_worker;
         
+        double m_startTime;
+        double m_currentTime;
+        double m_selectionChangeTime;
+        
         int m_rowOffset;
         int m_selectionRow;
         int m_selectionColumn;
         Rectangle m_selection;
+        
+        VideoDecoder m_decoder;
+        Texture m_videoFrame;
+        double m_videoUpdateTime;
 };

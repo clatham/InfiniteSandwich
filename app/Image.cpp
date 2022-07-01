@@ -21,38 +21,12 @@ Image::Image() :
 {
     if(m_impl)
     {
-        m_impl->data = NULL;
+        m_impl->data = nullptr;
         m_impl->useStdDelete = true;
         m_impl->width = 0;
         m_impl->height = 0;
         m_impl->bitsPerPixel = 0;
     }
-}
-
-
-Image::Image(const Image& rhs) :
-    m_impl(new PrivateImpl)
-{
-    if(m_impl)
-    {
-        m_impl->data = NULL;
-        m_impl->useStdDelete = true;
-        m_impl->width = 0;
-        m_impl->height = 0;
-        m_impl->bitsPerPixel = 0;
-        
-        if(rhs.m_impl)
-        {
-            load(rhs.m_impl->data,rhs.m_impl->width,rhs.m_impl->height,rhs.m_impl->bitsPerPixel,false);
-        }
-    }
-}
-
-
-Image::Image(Image&& rhs) :
-    m_impl(rhs.m_impl)
-{
-    rhs.m_impl = NULL;
 }
 
 
@@ -60,11 +34,18 @@ Image::~Image()
 {
     if(m_impl)
     {
-        if(m_impl->data)
-            destroy();
-        
+        destroy();
         delete m_impl;
     }
+}
+
+
+bool Image::valid() const
+{
+    if(!m_impl)
+        return false;
+    
+    return m_impl->data != nullptr;
 }
 
 
@@ -73,8 +54,7 @@ bool Image::load(const std::string& filename)
     if(!m_impl)
         return false;
     
-    if(m_impl->data)
-        destroy();
+    destroy();
     
     
     ::stbi_set_flip_vertically_on_load(true);
@@ -103,8 +83,7 @@ bool Image::load(const unsigned char *data,int length)
     if(!m_impl)
         return false;
     
-    if(m_impl->data)
-        destroy();
+    destroy();
     
     
     ::stbi_set_flip_vertically_on_load(true);
@@ -133,8 +112,7 @@ bool Image::load(const unsigned char *data,int width,int height,int bitsPerPixel
     if(!m_impl)
         return false;
     
-    if(m_impl->data)
-        destroy();
+    destroy();
     
     
     m_impl->data = new unsigned char[width * height * (bitsPerPixel / 8)];
@@ -167,16 +145,16 @@ void Image::destroy()
     if(!m_impl)
         return;
     
-    if(!m_impl->data)
-        return;
     
+    if(m_impl->data)
+    {
+        if(m_impl->useStdDelete)
+            delete[] m_impl->data;
+        else
+            ::stbi_image_free(m_impl->data);
+    }
     
-    if(m_impl->useStdDelete)
-        delete[] m_impl->data;
-    else
-        ::stbi_image_free(m_impl->data);
-    
-    m_impl->data = NULL;
+    m_impl->data = nullptr;
     m_impl->width = 0;
     m_impl->height = 0;
     m_impl->bitsPerPixel = 0;
@@ -185,7 +163,7 @@ void Image::destroy()
 
 int Image::width() const
 {
-    if(!m_impl)
+    if(!valid())
         return 0;
     
     
@@ -195,7 +173,7 @@ int Image::width() const
 
 int Image::height() const
 {
-    if(!m_impl)
+    if(!valid())
         return 0;
     
     
@@ -205,7 +183,7 @@ int Image::height() const
 
 int Image::bitsPerPixel() const
 {
-    if(!m_impl)
+    if(!valid())
         return 0;
     
     
@@ -215,29 +193,9 @@ int Image::bitsPerPixel() const
 
 const void *Image::pixelData() const
 {
-    if(!m_impl)
-        return NULL;
+    if(!valid())
+        return nullptr;
     
     
     return m_impl->data;
-}
-
-
-Image& Image::operator=(const Image& rhs)
-{
-    Image(rhs).swap(*this);
-    return *this;
-}
-
-
-Image& Image::operator=(Image&& rhs)
-{
-    swap(rhs);
-    return *this;
-}
-
-
-void Image::swap(Image& rhs)
-{
-    std::swap(m_impl,rhs.m_impl);
 }

@@ -95,7 +95,7 @@ bool Font::valid() const
     if(!m_impl)
         return false;
     
-    return m_impl->vao != 0;
+    return m_impl->shaderProgram  &&  m_impl->vao  &&  m_impl->vbo  &&  m_impl->ebo  &&  m_impl->texture;
 }
 
 
@@ -103,6 +103,8 @@ bool Font::load(const std::string& filename,float lineHeight)
 {
     if(!m_impl)
         return false;
+    
+    destroy();
     
     
     std::ifstream fontFile(filename,std::ios_base::binary);
@@ -157,7 +159,7 @@ bool Font::load(const std::string& filename,float lineHeight)
             for(int character = 32;character < 128;++character)
             {
                 int advance;
-                ::stbtt_GetCodepointHMetrics(&info,character,&advance,NULL);
+                ::stbtt_GetCodepointHMetrics(&info,character,&advance,nullptr);
                 
                 
                 int x1,y1,x2,y2;
@@ -193,7 +195,7 @@ bool Font::load(const std::string& filename,float lineHeight)
             // create and compile vertex shader
 
             unsigned int vertexShader = ::glCreateShader(GL_VERTEX_SHADER);
-            ::glShaderSource(vertexShader,1,&vertexShaderSource,NULL);
+            ::glShaderSource(vertexShader,1,&vertexShaderSource,nullptr);
             ::glCompileShader(vertexShader);
 
             int success;
@@ -202,7 +204,7 @@ bool Font::load(const std::string& filename,float lineHeight)
             if(!success)
             {
                 char infoLog[512];
-                ::glGetShaderInfoLog(vertexShader,512,NULL,infoLog);
+                ::glGetShaderInfoLog(vertexShader,512,nullptr,infoLog);
                 std::cout << "Texture::create:  error compiling vertex shader:  " << infoLog << std::endl;
                 return false;
             }
@@ -211,7 +213,7 @@ bool Font::load(const std::string& filename,float lineHeight)
             // create and compile fragment shader
 
             unsigned int fragmentShader = ::glCreateShader(GL_FRAGMENT_SHADER);
-            ::glShaderSource(fragmentShader,1,&fragmentShaderSource,NULL);
+            ::glShaderSource(fragmentShader,1,&fragmentShaderSource,nullptr);
             ::glCompileShader(fragmentShader);
 
             ::glGetShaderiv(fragmentShader,GL_COMPILE_STATUS,&success);
@@ -219,7 +221,7 @@ bool Font::load(const std::string& filename,float lineHeight)
             if(!success)
             {
                 char infoLog[512];
-                ::glGetShaderInfoLog(fragmentShader,512,NULL,infoLog);
+                ::glGetShaderInfoLog(fragmentShader,512,nullptr,infoLog);
                 std::cout << "Texture::create:  error compiling fragment shader:  " << infoLog << std::endl;
                 return false;
             }
@@ -237,7 +239,7 @@ bool Font::load(const std::string& filename,float lineHeight)
             if(!success)
             {
                 char infoLog[512];
-                ::glGetProgramInfoLog(m_impl->shaderProgram,512,NULL,infoLog);
+                ::glGetProgramInfoLog(m_impl->shaderProgram,512,nullptr,infoLog);
                 std::cout << "Texture::create:  error linking shader program:  " << infoLog << std::endl;
                 return false;
             }
@@ -325,20 +327,41 @@ bool Font::load(const std::string& filename,float lineHeight)
 
 void Font::destroy()
 {
-    if(valid())
+    if(!m_impl)
+        return;
+    
+    
+    m_impl->bitmapWidth = 0;
+    m_impl->bitmapHeight = 0;
+    
+    if(m_impl->vao)
     {
         ::glDeleteVertexArrays(1,&m_impl->vao);
-        ::glDeleteBuffers(1,&m_impl->vbo);
-        ::glDeleteBuffers(1,&m_impl->ebo);
-        ::glDeleteProgram(m_impl->shaderProgram);
-        
-        m_impl->bitmapWidth = 0;
-        m_impl->bitmapHeight = 0;
-        m_impl->shaderProgram = 0;
         m_impl->vao = 0;
+    }
+    
+    if(m_impl->vbo)
+    {
+        ::glDeleteBuffers(1,&m_impl->vbo);
         m_impl->vbo = 0;
+    }
+    
+    if(m_impl->ebo)
+    {
+        ::glDeleteBuffers(1,&m_impl->ebo);
         m_impl->ebo = 0;
+    }
+    
+    if(m_impl->texture)
+    {
+        ::glDeleteTextures(1,&m_impl->texture);
         m_impl->texture = 0;
+    }
+
+    if(m_impl->shaderProgram)
+    {
+        ::glDeleteProgram(m_impl->shaderProgram);
+        m_impl->shaderProgram = 0;
     }
 }
 

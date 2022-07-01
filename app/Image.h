@@ -6,9 +6,9 @@ class Image
 {
     public:
         Image();
-        Image(const Image& rhs);
-        Image(Image&& rhs);
         ~Image();
+        
+        bool valid() const;
         
         bool load(const std::string& filename);
         bool load(const unsigned char *data,int length);
@@ -20,11 +20,6 @@ class Image
         int bitsPerPixel() const;
         
         const void *pixelData() const;
-        
-        Image& operator=(const Image& rhs);
-        Image& operator=(Image&& rhs);
-        
-        void swap(Image& rhs);
         
     private:
         struct PrivateImpl;

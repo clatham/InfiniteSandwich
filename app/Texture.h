@@ -6,8 +6,6 @@ class Texture
 {
     public:
         Texture();
-        Texture(const Texture& rhs);
-        Texture(Texture&& rhs);
         ~Texture();
         
         bool create(const Image& image);
@@ -20,11 +18,6 @@ class Texture
         
         void draw(float screenX,float screenY,float screenWidth,float screenHeight,
                   float textureX,float textureY,float textureWidth,float textureHeight);
-        
-        Texture& operator=(const Texture& rhs);
-        Texture& operator=(Texture&& rhs);
-        
-        void swap(Texture& rhs);
         
     private:
         struct PrivateImpl;
