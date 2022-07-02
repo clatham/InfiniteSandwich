@@ -206,7 +206,13 @@ void Rectangle::draw(float centerX,float centerY,float width,float height)
     
     ::glBindBuffer(GL_ARRAY_BUFFER,m_impl->vbo);
     ::glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
-
+    
+    float lineWidth = 1.0f;
+    ::glGetFloatv(GL_LINE_WIDTH,&lineWidth);
+    ::glLineWidth(2.0f);
+    
     ::glDrawElements(GL_LINES,8,GL_UNSIGNED_INT,0);
+    
+    ::glLineWidth(lineWidth);
     ::glBindVertexArray(0);
 }

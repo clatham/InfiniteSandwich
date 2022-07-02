@@ -204,7 +204,7 @@ void DisneyWindow::onRender()
                 if(row == m_selectionRow  &&  column == m_selectionColumn)
                 {
                     scale = 0.95f;
-                    m_selection.draw(-1.0f + tileWidth * column + tileWidth * 0.6f,1.0f - tileHeight * row - tileHeight * 0.5f,tileWidth * scale * 1.005f,tileWidth * scale * 1.005f);
+                    m_selection.draw(-1.0f + tileWidth * column + tileWidth * 0.6f,1.0f - tileHeight * row - tileHeight * 0.5f,tileWidth * scale,tileWidth * scale);
                 }
                 
                 if(row == m_selectionRow  &&  column == m_selectionColumn  &&
