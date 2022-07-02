@@ -6,8 +6,8 @@ set CMAKE_TOOL=%PROJECT_DIR%\vcpkg\downloads\tools\cmake-3.22.2-windows\cmake-3.
 cd %PROJECT_DIR%
 
 
-if not exist vcpkg\ (
-    git submodule update --init --recurse
+if not exist vcpkg\vcpkg-bootstrap.bat (
+    git submodule update --init --recursive
 )
 
 
