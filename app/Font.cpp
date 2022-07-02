@@ -23,6 +23,10 @@ static const char *vertexShaderSource =
 "    texCoord = aTexCoord;\n"
 "}\n\0";
 
+
+// this shader returns white pixels with the alpha channel derived from the
+// single-channel font bitmap that we build below
+
 static const char *fragmentShaderSource =
 "#version 330 core\n"
 "in vec2 texCoord;\n"
@@ -111,12 +115,13 @@ bool Font::load(const std::string& filename,float lineHeight)
     
     if(fontFile.is_open())
     {
+        // determine the size of the font file
         std::streampos fileSize = fontFile.tellg();
         fontFile.seekg(0,std::ios::end);
         fileSize = fontFile.tellg() - fileSize;
         fontFile.seekg(0,std::ios::beg);
         
-        
+        // read the whole font file into a buffer
         unsigned char *buffer = new unsigned char[fileSize];
         fontFile.read((char *) buffer,fileSize);
         fontFile.close();
@@ -154,6 +159,10 @@ bool Font::load(const std::string& filename,float lineHeight)
             unsigned char *bitmap = new unsigned char[m_impl->bitmapWidth * m_impl->bitmapHeight];
             memset(bitmap,0,m_impl->bitmapWidth * m_impl->bitmapHeight);
             
+            
+            // walk through the printable characters again generating their
+            // bitmaps into a single large bitmap with 1 pixel spacing between.
+            // we also need to gather the extents for each character for later
             int x = 0;
             
             for(int character = 32;character < 128;++character)
@@ -188,6 +197,9 @@ bool Font::load(const std::string& filename,float lineHeight)
             }
             
             
+            // load the bitmap into an image object.  this is dumb.  we're
+            // doing it because we want to invert the bitmap and we don't have
+            // a texture ctor that takes a buffer
             Image image;
             image.load(bitmap,m_impl->bitmapWidth,m_impl->bitmapHeight,8);
             
@@ -369,6 +381,11 @@ void Font::destroy()
 void Font::drawText(const std::string& text,
                     float screenX,float screenY,float screenWidth,float screenHeight)
 {
+    // this function ignores the screenWidth and screenHeight arguments and just
+    // draws from the screenX to the right.  this is because we did the whole
+    // centerpoint thing with the other draw methods, but we don't have aPos
+    // method to get the overall extents of the string before we start drawing
+    
     if(!valid())
         return;
     
@@ -396,14 +413,6 @@ void Font::drawText(const std::string& text,
     for(int i = 0;i < text.size();++i)
     {
         Extent extent = m_impl->extents[(unsigned char) text[i]];
-/*        std::cout << "x = " << std::setprecision(8) << x
-                  << ",  width = " << (float) extent.width * xScale
-                  << ",  advance = " << (float) extent.advance * xScale
-                  << "\n    extent.x = " << extent.x
-                  << ",  extent.width = " << extent.width
-                  << ",  extent.advance = " << extent.advance
-                  << std::endl;*/
-        
         
         float width = (float) extent.width * xScale;
         float height = (float) extent.height * yScale;
@@ -417,7 +426,7 @@ void Font::drawText(const std::string& text,
         
         float vertices[] =
         {
-            // positions                                                        // texture coords
+            // positions                                      // texture coords
             x + xOff + width, screenY + yOff + height, 0.0f,  textureX + textureWidth, textureY + textureHeight,
             x + xOff + width, screenY + yOff,          0.0f,  textureX + textureWidth, textureY,
             x + xOff,         screenY + yOff,          0.0f,  textureX, textureY,
@@ -426,10 +435,7 @@ void Font::drawText(const std::string& text,
         
         ::glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
 
-
         ::glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,0);
-//        m_impl->texture.draw(x,screenY,(float) extent.width * xScale,(float) extent.height * yScale,
-//                             (float) extent.x / m_impl->bitmapWidth,(float) extent.y / m_impl->bitmapHeight,(float) extent.width / m_impl->bitmapWidth,(float) extent.height / m_impl->bitmapHeight);
 
         
         x += (float) extent.advance * xScale;

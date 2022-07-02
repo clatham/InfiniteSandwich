@@ -61,7 +61,7 @@ Window::Window() :
     
     
     if(m_impl)
-        m_impl->windowHandle = NULL;
+        m_impl->windowHandle = nullptr;
 }
 
 
@@ -86,12 +86,13 @@ bool Window::create(int width,int height,const std::string& title)
         return false;
     
     
+    // we need opengl 4.3 for the debug callback
     ::glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,4);
     ::glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
     ::glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
     ::glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT,GLFW_TRUE);
     
-    m_impl->windowHandle = ::glfwCreateWindow(width,height,title.c_str(),NULL,NULL);
+    m_impl->windowHandle = ::glfwCreateWindow(width,height,title.c_str(),nullptr,nullptr);
     
     if(!m_impl->windowHandle)
     {
@@ -100,10 +101,12 @@ bool Window::create(int width,int height,const std::string& title)
     }
     
     
+    // set the user pointer to this class, so we can access it from callbacks
     ::glfwSetWindowUserPointer(m_impl->windowHandle,(void *) this);
     
     ::glfwSetFramebufferSizeCallback(m_impl->windowHandle,(GLFWframebuffersizefun) resizeCallback);
     ::glfwSetKeyCallback(m_impl->windowHandle,(GLFWkeyfun) keyCallback);
+    
     
     ::glfwMakeContextCurrent(m_impl->windowHandle);
     ::glfwSwapInterval(1);
@@ -118,8 +121,8 @@ bool Window::create(int width,int height,const std::string& title)
     
     ::glEnable(GL_DEBUG_OUTPUT);
     ::glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    ::glDebugMessageCallback(debugMessageCallback,NULL);
-    ::glDebugMessageControl(GL_DONT_CARE,GL_DONT_CARE,GL_DONT_CARE,0,NULL,GL_TRUE);
+    ::glDebugMessageCallback(debugMessageCallback,nullptr);
+    ::glDebugMessageControl(GL_DONT_CARE,GL_DONT_CARE,GL_DONT_CARE,0,nullptr,GL_TRUE);
     
     return onCreate();
 }
@@ -137,7 +140,7 @@ void Window::destroy()
     onDestroy();
     
     ::glfwDestroyWindow(m_impl->windowHandle);
-    m_impl->windowHandle = NULL;
+    m_impl->windowHandle = nullptr;
 }
 
 
@@ -170,7 +173,6 @@ void Window::render()
     
 
     ::glfwSwapBuffers(m_impl->windowHandle);
-    
     ::glfwPollEvents();
 }
 
@@ -261,10 +263,10 @@ void Window::setTitle(const std::string& title)
 void *Window::handle()
 {
     if(!m_impl)
-        return NULL;
+        return nullptr;
     
     if(!m_impl->windowHandle)
-        return NULL;
+        return nullptr;
     
     return m_impl->windowHandle;
 }

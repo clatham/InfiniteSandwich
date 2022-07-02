@@ -73,8 +73,6 @@ static size_t writeCallback(void *contents,size_t size,size_t nmemb,void *opaque
     size_t totalBytes = size * nmemb;
     std::string *data = (std::string *) opaque;
     data->insert(data->end(),(const uint8_t *) contents,(const uint8_t *) contents + totalBytes);
-//std::cout << "\n\ntransfer of " << (int) totalBytes << " bytes:\n";
-//hexDump((unsigned char *) contents,(int) totalBytes);
     
     return totalBytes;
 }

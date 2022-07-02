@@ -51,6 +51,8 @@ bool Image::valid() const
 
 bool Image::load(const std::string& filename)
 {
+    // this function loads an image file format from a file
+    
     if(!m_impl)
         return false;
     
@@ -80,6 +82,9 @@ bool Image::load(const std::string& filename)
 
 bool Image::load(const unsigned char *data,int length)
 {
+    // this function loads an image file format from memory.  we probably got it
+    // from the Disney server
+    
     if(!m_impl)
         return false;
     
@@ -109,6 +114,9 @@ bool Image::load(const unsigned char *data,int length)
 
 bool Image::load(const unsigned char *data,int width,int height,int bitsPerPixel,bool invert)
 {
+    // this function loads a raw image from memory.  we probably got it from a
+    // font
+    
     if(!m_impl)
         return false;
     

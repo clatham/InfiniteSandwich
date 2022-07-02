@@ -69,7 +69,7 @@ bool Rectangle::create()
     // create and compile vertex shader
     
     unsigned int vertexShader = ::glCreateShader(GL_VERTEX_SHADER);
-    ::glShaderSource(vertexShader,1,&vertexShaderSource,NULL);
+    ::glShaderSource(vertexShader,1,&vertexShaderSource,nullptr);
     ::glCompileShader(vertexShader);
     
     int success;
@@ -78,7 +78,7 @@ bool Rectangle::create()
     if(!success)
     {
         char infoLog[512];
-        ::glGetShaderInfoLog(vertexShader,512,NULL,infoLog);
+        ::glGetShaderInfoLog(vertexShader,512,nullptr,infoLog);
         std::cout << "Rectangle::create:  error compiling vertex shader:  " << infoLog << std::endl;
         return false;
     }
@@ -87,7 +87,7 @@ bool Rectangle::create()
     // create and compile fragment shader
     
     unsigned int fragmentShader = ::glCreateShader(GL_FRAGMENT_SHADER);
-    ::glShaderSource(fragmentShader,1,&fragmentShaderSource,NULL);
+    ::glShaderSource(fragmentShader,1,&fragmentShaderSource,nullptr);
     ::glCompileShader(fragmentShader);
     
     ::glGetShaderiv(fragmentShader,GL_COMPILE_STATUS,&success);
@@ -95,7 +95,7 @@ bool Rectangle::create()
     if(!success)
     {
         char infoLog[512];
-        ::glGetShaderInfoLog(fragmentShader,512,NULL,infoLog);
+        ::glGetShaderInfoLog(fragmentShader,512,nullptr,infoLog);
         std::cout << "Rectangle::create:  error compiling fragment shader:  " << infoLog << std::endl;
         return false;
     }
@@ -113,7 +113,7 @@ bool Rectangle::create()
     if(!success)
     {
         char infoLog[512];
-        ::glGetProgramInfoLog(m_impl->shaderProgram,512,NULL,infoLog);
+        ::glGetProgramInfoLog(m_impl->shaderProgram,512,nullptr,infoLog);
         std::cout << "Rectangle::create:  error linking shader program:  " << infoLog << std::endl;
         return false;
     }

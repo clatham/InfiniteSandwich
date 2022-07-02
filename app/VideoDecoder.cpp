@@ -123,7 +123,6 @@ bool VideoDecoder::open(const std::string& filename)
     
     
     AVStream *stream = m_impl->formatContext->streams[m_impl->streamIndex];
-    
     AVCodec *decoder = ::avcodec_find_decoder(stream->codecpar->codec_id);
     
     if(!decoder)
