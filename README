@@ -1,0 +1,6 @@
+Disney+ Project by Chris Latham
+
+
+To build on Windows, simply run the build script for your platform from a
+command prompt where your compiler is accessible.  I recommend the Visual Studio
+2019 x64 Native Tools Command Prompt.
